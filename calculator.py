@@ -7,16 +7,32 @@ class Calculator:
 
     def input_value(self):
         num_list = input().split()
-        self.nums = [int(m) for m in num_list]
+        self.nums = num_list
+        return num_list
 
     def add(self):
-        print(sum(self.nums))
+        print(sum([int(v) for v in self.nums]))
 
 
 def main():
     calculator = Calculator()
-    calculator.input_value()
-    calculator.add()
+
+    while True:
+        name = calculator.input_value()
+
+        try:
+            str_value = ''.join(name)
+
+            if str_value == '/exit':
+                print('Bye!')
+                break
+            elif str_value == '':
+                continue
+            else:
+                calculator.add()
+                continue
+        except (ValueError, TypeError):
+            pass
 
 
 if __name__ == '__main__':
