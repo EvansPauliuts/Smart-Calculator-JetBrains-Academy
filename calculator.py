@@ -28,9 +28,10 @@ def main():
                 break
             elif str_value == '':
                 continue
+            elif str_value == '/help':
+                print('The program calculates the sum of numbers')
             else:
                 calculator.add()
-                continue
         except (ValueError, TypeError):
             pass
 
