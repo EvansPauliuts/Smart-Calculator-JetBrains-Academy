@@ -1,14 +1,21 @@
 # write your code here
 import re
 
+from abc import ABC
+from operator import add, sub, mul, truediv
+
+
+class MyException(Exception, ABC):
+    pass
+
 
 class Calculator:
-    OPERATORS = (
-        '-',
-        '+',
-        '/',
-        '-'
-    )
+    OPERATORS = {
+        '+': add,
+        '-': sub,
+        '*': mul,
+        '/': truediv
+    }
 
     def __init__(self):
         self.process_replace = []
@@ -22,9 +29,24 @@ class Calculator:
         self.process_replace = operator.split(' ')
 
     def operator_result(self):
-        str_operators_num = ''.join(self.process_replace)
-        sum_result = sum(map(int, re.findall(r'[+-/*]?\d+', str_operators_num)))
-        print(sum_result)
+        number_rs = 0
+        option = add
+        str_operators_num = ' '.join(self.process_replace)
+
+        try:
+            if bool(re.match(r'[+-/*]?\w+[+-/*]|\w+[^0-9\s+]', str_operators_num)):
+                raise MyException('Invalid expression')
+            else:
+                for item in self.process_replace:
+                    if item in Calculator.OPERATORS:
+                        option = Calculator.OPERATORS[item]
+                    else:
+                        number = int(item)
+                        number_rs = option(number_rs, number)
+
+                print(number_rs)
+        except MyException as e:
+            print(e.args[0])
 
     @staticmethod
     def help():
@@ -50,7 +72,7 @@ def main():
             calculator.process_operator(user_calc)
             calculator.operator_result()
         except (ValueError, TypeError):
-            pass
+            print('Unknown command')
 
 
 if __name__ == '__main__':
