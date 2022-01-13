@@ -1,37 +1,54 @@
 # write your code here
+import re
 
 
 class Calculator:
+    OPERATORS = (
+        '-',
+        '+',
+        '/',
+        '-'
+    )
+
     def __init__(self):
-        self.nums = []
+        self.process_replace = []
 
-    def input_value(self):
-        num_list = input().split()
-        self.nums = num_list
-        return num_list
+    def process_operator(self, operator):
+        while operator.count('--') >= 1 or operator.count('++') >= 1:
+            operator = operator.replace('--', '+')
+            operator = operator.replace('++', '+')
+            operator = operator.replace('+-', '-')
 
-    def add(self):
-        print(sum([int(v) for v in self.nums]))
+        self.process_replace = operator.split(' ')
+
+    def operator_result(self):
+        str_operators_num = ''.join(self.process_replace)
+        sum_result = sum(map(int, re.findall(r'[+-/*]?\d+', str_operators_num)))
+        print(sum_result)
+
+    @staticmethod
+    def help():
+        print('The program computes operations containing additions and subtractions')
 
 
 def main():
     calculator = Calculator()
 
     while True:
-        name = calculator.input_value()
+        user_calc = input()
 
         try:
-            str_value = ''.join(name)
-
-            if str_value == '/exit':
+            if user_calc == '/exit':
                 print('Bye!')
                 break
-            elif str_value == '':
+            elif not user_calc:
                 continue
-            elif str_value == '/help':
-                print('The program calculates the sum of numbers')
-            else:
-                calculator.add()
+            elif user_calc == '/help':
+                calculator.help()
+                continue
+
+            calculator.process_operator(user_calc)
+            calculator.operator_result()
         except (ValueError, TypeError):
             pass
 
