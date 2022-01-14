@@ -1,5 +1,6 @@
 # write your code here
 import re
+import string
 
 from abc import ABC
 from operator import add, sub, mul, truediv
@@ -10,21 +11,36 @@ class MyException(Exception, ABC):
 
 
 class Calculator:
+    """ The program computes operations containing additions and subtractions """
+
     OPERATORS = {
         '+': add,
         '-': sub,
         '*': mul,
         '/': truediv
     }
+    commands = ['/help', '/exit']
 
     def __init__(self):
         self.process_replace = []
+        self.data_dict = {}
+
+    @staticmethod
+    def execute_command(command):
+        if command == '/exit':
+            print('Bye!')
+            return False
+        elif command == '/help':
+            print(Calculator.__doc__)
+
+        return True
 
     def process_operator(self, operator):
         while operator.count('--') >= 1 or operator.count('++') >= 1:
             operator = operator.replace('--', '+')
             operator = operator.replace('++', '+')
             operator = operator.replace('+-', '-')
+            operator = operator.replace('-+', '-')
 
         self.process_replace = operator.split(' ')
 
@@ -33,9 +49,14 @@ class Calculator:
         option = add
         str_operators_num = ' '.join(self.process_replace)
 
+        if len(self.data_dict) != 0:
+            for i in range(len(self.process_replace)):
+                if self.process_replace[i] in self.data_dict:
+                    self.process_replace[i] = self.data_dict[self.process_replace[i]]
+
         try:
             if bool(re.match(r'[+-/*]?\w+[+-/*]|\w+[^0-9\s+]', str_operators_num)):
-                raise MyException('Invalid expression')
+                raise MyException('Invalid identifier')
             else:
                 for item in self.process_replace:
                     if item in Calculator.OPERATORS:
@@ -49,24 +70,62 @@ class Calculator:
             print(e.args[0])
 
     @staticmethod
-    def help():
-        print('The program computes operations containing additions and subtractions')
+    def substring_list(name):
+        val, num = ''.join(name.split()).replace('=', ' ').split()
+        return val, num
+
+    def save_dict_hash(self, val):
+        val, num = self.substring_list(val)
+
+        try:
+            if True in [num.endswith(v) for v in string.ascii_lowercase]:
+                raise MyException('Invalid identifier')
+
+            self.data_dict[val] = num
+
+        except MyException as e:
+            print(e.args[0])
+
+    def check_dict_hash(self, val):
+        a, b = self.substring_list(val)
+
+        if b in self.data_dict:
+            self.data_dict[a] = self.data_dict[b]
+        else:
+            print('Unknown variable')
+
+    def check_dict(self, name):
+        if name in self.data_dict:
+            print(self.data_dict[name])
+        else:
+            print('Unknown variable')
 
 
 def main():
     calculator = Calculator()
+    flag = True
 
-    while True:
+    while flag:
         user_calc = input()
 
         try:
-            if user_calc == '/exit':
-                print('Bye!')
-                break
-            elif not user_calc:
+            if user_calc.startswith('/'):
+                if user_calc in Calculator.commands:
+                    flag = Calculator.execute_command(user_calc)
+                    continue
+            elif user_calc == '':
                 continue
-            elif user_calc == '/help':
-                calculator.help()
+            elif bool(re.match(r'^[a-z]+(\s?)+?=(\s?)+?\d+', user_calc)) and user_calc.count('=') == 1:
+                calculator.save_dict_hash(user_calc)
+                continue
+            elif bool(re.match(r'\s*?\w+(\s?)+?=(\s?)+?[a-z]', user_calc)):
+                calculator.check_dict_hash(user_calc)
+                continue
+            elif bool(re.match(r'\w+$', user_calc)):
+                calculator.check_dict(user_calc)
+                continue
+            elif user_calc.count('=') >= 2:
+                print('Invalid assignment')
                 continue
 
             calculator.process_operator(user_calc)
